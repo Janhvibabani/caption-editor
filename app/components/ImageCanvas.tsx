@@ -157,7 +157,7 @@ export default function ImageCanvas({
     const paddingX = 16;
     const paddingY = 8; // REDUCED vertical padding
     const borderRadius = 6;
-    const bottomMargin = 24;
+    const bottomMargin = 10;
 
     ctx.font = `${fontSize}px ${font}`;
     ctx.textAlign = "center";

@@ -18,11 +18,11 @@ export default function Page() {
   const [image, setImage] = useState<string | null>(null);
   const [textColor, setTextColor] = useState("#FFFFFF");
   const [bgColor, setBgColor] = useState("#000000");
-  const [opacity, setOpacity] = useState(80);
+  const [opacity, setOpacity] = useState(0);
   const [filter, setFilter] = useState("none");
   const [font, setFont] = useState("Arial, sans-serif");
   const [fontSize, setFontSize] = useState(28);
-  const [textStroke, setTextStroke] = useState(0); // NEW
+  const [textStroke, setTextStroke] = useState(3); // NEW
   const [textStrokeColor, setTextStrokeColor] = useState("#000000"); // NEW
 
   const handleReset = () => {
@@ -30,11 +30,11 @@ export default function Page() {
     setCaption("");
     setTextColor("#FFFFFF");
     setBgColor("#000000");
-    setOpacity(80);
+    setOpacity(0);
     setFilter("none");
     setFont("Arial, sans-serif");
     setFontSize(28);
-    setTextStroke(0);
+    setTextStroke(3);
     setTextStrokeColor("#000000");
   };
 
