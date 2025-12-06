@@ -2,13 +2,18 @@
 
 interface Props {
   onReset: () => void;
+  theme?: "light" | "dark";
 }
 
-export default function ResetButton({ onReset }: Props) {
+export default function ResetButton({ onReset, theme = "dark" }: Props) {
   return (
     <button
       onClick={onReset}
-      className="w-full px-4 py-2 bg-red-600 text-white text-sm font-semibold rounded hover:bg-red-700 transition uppercase tracking-wider"
+      className={`w-full px-4 py-2 rounded-lg font-semibold text-sm transition uppercase tracking-wider ${
+        theme === 'dark'
+          ? 'bg-white text-black hover:bg-neutral-200'
+          : 'bg-black text-white hover:bg-neutral-800'
+      }`}
     >
       Reset Image
     </button>

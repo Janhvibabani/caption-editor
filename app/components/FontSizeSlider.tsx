@@ -1,14 +1,19 @@
 "use client";
 
+import { Theme } from "../hooks/useTheme";
+
 interface Props {
   fontSize: number;
   setFontSize: (val: number) => void;
+  theme: Theme;
 }
 
-export default function FontSizeSlider({ fontSize, setFontSize }: Props) {
+export default function FontSizeSlider({ fontSize, setFontSize, theme }: Props) {
   return (
     <div>
-      <label className="block text-xs font-semibold mb-2 text-neutral-400 uppercase tracking-wider">
+      <label className={`block text-xs font-semibold mb-2 uppercase tracking-wider ${
+        theme === 'dark' ? 'text-neutral-400' : 'text-neutral-600'
+      }`}>
         Font Size: {fontSize}px
       </label>
       <input
@@ -17,9 +22,15 @@ export default function FontSizeSlider({ fontSize, setFontSize }: Props) {
         max="72"
         value={fontSize}
         onChange={(e) => setFontSize(Number(e.target.value))}
-        className="w-full h-2 bg-neutral-700 rounded-lg appearance-none cursor-pointer accent-white"
+        className={`w-full h-2 rounded-lg appearance-none cursor-pointer ${
+          theme === 'dark' 
+            ? 'bg-neutral-700 accent-white' 
+            : 'bg-neutral-300 accent-black'
+        }`}
       />
-      <div className="flex justify-between text-xs text-neutral-600 mt-1">
+      <div className={`flex justify-between text-xs mt-1 ${
+        theme === 'dark' ? 'text-neutral-600' : 'text-neutral-500'
+      }`}>
         <span>12px</span>
         <span>72px</span>
       </div>

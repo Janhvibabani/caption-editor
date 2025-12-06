@@ -1,26 +1,39 @@
 "use client";
-import React from "react";
+
+import { Theme } from "../hooks/useTheme";
 
 interface Props {
   opacity: number;
-  setOpacity: (v: number) => void;
+  setOpacity: (val: number) => void;
+  theme: Theme;
 }
 
-export default function OpacitySlider({ opacity, setOpacity }: Props) {
+export default function OpacitySlider({ opacity, setOpacity, theme }: Props) {
   return (
-    <div className="bg-[#111] p-4 rounded-md border border-neutral-700">
-      <label className="text-sm text-neutral-300">BACKGROUND OPACITY</label>
-
+    <div>
+      <label className={`block text-xs font-semibold mb-2 uppercase tracking-wider ${
+        theme === 'dark' ? 'text-neutral-400' : 'text-neutral-600'
+      }`}>
+        Background Opacity: {opacity}%
+      </label>
       <input
         type="range"
-        min={0}
-        max={100}
+        min="0"
+        max="100"
         value={opacity}
         onChange={(e) => setOpacity(Number(e.target.value))}
-        className="w-full mt-3"
+        className={`w-full h-2 rounded-lg appearance-none cursor-pointer ${
+          theme === 'dark' 
+            ? 'bg-neutral-700 accent-white' 
+            : 'bg-neutral-300 accent-black'
+        }`}
       />
-
-      <p className="text-right text-sm text-neutral-400 mt-1">{opacity}%</p>
+      <div className={`flex justify-between text-xs mt-1 ${
+        theme === 'dark' ? 'text-neutral-600' : 'text-neutral-500'
+      }`}>
+        <span>0%</span>
+        <span>100%</span>
+      </div>
     </div>
   );
 }

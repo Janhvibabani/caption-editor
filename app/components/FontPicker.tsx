@@ -1,32 +1,47 @@
 "use client";
 
+import { Theme } from "../hooks/useTheme";
+
 interface Props {
   font: string;
   setFont: (val: string) => void;
+  theme: Theme;
 }
 
-export default function FontPicker({ font, setFont }: Props) {
-  const fonts = [
-    { value: "Arial, sans-serif", label: "Arial" },
-    { value: "Georgia, serif", label: "Georgia" },
-    { value: "Courier New, monospace", label: "Courier" },
-    { value: "Verdana, sans-serif", label: "Verdana" },
-    { value: "Times New Roman, serif", label: "Times" },
-    { value: "Impact, sans-serif", label: "Impact" },
-  ];
+const FONTS = [
+  { value: "Arial, sans-serif", label: "Arial" },
+  { value: "Georgia, serif", label: "Georgia" },
+  { value: "'Courier New', monospace", label: "Courier New" },
+  { value: "Verdana, sans-serif", label: "Verdana" },
+  { value: "'Times New Roman', serif", label: "Times New Roman" },
+  { value: "Impact, sans-serif", label: "Impact" },
+  { value: "'Comic Sans MS', cursive", label: "Comic Sans MS" },
+  { value: "'Trebuchet MS', sans-serif", label: "Trebuchet MS" },
+];
 
+export default function FontPicker({ font, setFont, theme }: Props) {
   return (
     <div>
-      <label className="block text-xs font-semibold mb-2 text-neutral-400 uppercase tracking-wider">
+      <label className={`block text-xs font-semibold mb-2 uppercase tracking-wider ${
+        theme === 'dark' ? 'text-neutral-400' : 'text-neutral-600'
+      }`}>
         Font
       </label>
       <select
         value={font}
         onChange={(e) => setFont(e.target.value)}
-        className="w-full px-3 py-2 bg-neutral-900 border border-neutral-700 rounded text-sm focus:outline-none focus:border-neutral-500"
+        className={`w-full px-3 py-2 border rounded text-sm focus:outline-none ${
+          theme === 'dark'
+            ? 'bg-neutral-900 border-neutral-700 focus:border-neutral-500 text-white'
+            : 'bg-white border-neutral-300 focus:border-neutral-500 text-black'
+        }`}
       >
-        {fonts.map((f) => (
-          <option key={f.value} value={f.value}>
+        {FONTS.map((f) => (
+          <option 
+            key={f.value} 
+            value={f.value}
+            style={{ fontFamily: f.value }}
+          >
             {f.label}
           </option>
         ))}

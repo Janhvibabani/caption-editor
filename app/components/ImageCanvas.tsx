@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useRef, useEffect, useState } from "react";
+import { Theme } from "../hooks/useTheme";
 
 interface Props {
   image: string | null;
@@ -11,8 +12,9 @@ interface Props {
   filter: string;
   font: string;
   fontSize: number;
-  textStroke: number; // NEW
-  textStrokeColor: string; // NEW
+  textStroke: number;
+  textStrokeColor: string;
+  theme: Theme;
 }
 
 interface ImageBounds {
@@ -35,9 +37,11 @@ export default function ImageCanvas({
   fontSize,
   textStroke,
   textStrokeColor,
+  theme,
 }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const previewCanvasRef = useRef<HTMLCanvasElement>(null); // NEW: Separate preview canvas
   const [imageBounds, setImageBounds] = useState<ImageBounds | null>(null);
   const [containerDimensions, setContainerDimensions] = useState({ width: 900, height: 600 });
 
@@ -89,60 +93,66 @@ export default function ImageCanvas({
         naturalHeight: img.naturalHeight,
       });
 
-      drawToCanvas(img, renderedWidth, renderedHeight, offsetX, offsetY);
+      // Draw both canvases
+      drawToCanvas(img, renderedWidth, renderedHeight, offsetX, offsetY, true); // Preview with bg
+      drawToCanvas(img, img.naturalWidth, img.naturalHeight, 0, 0, false); // Export without bg
     };
     img.src = image;
-  }, [image, caption, textColor, bgColor, opacity, filter, font, fontSize, textStroke, textStrokeColor, containerDimensions]);
+  }, [image, caption, textColor, bgColor, opacity, filter, font, fontSize, textStroke, textStrokeColor, containerDimensions, theme]);
 
   const drawToCanvas = (
     img: HTMLImageElement,
-    renderedWidth: number,
-    renderedHeight: number,
+    width: number,
+    height: number,
     offsetX: number,
-    offsetY: number
+    offsetY: number,
+    isPreview: boolean
   ) => {
-    const canvas = canvasRef.current;
+    const canvas = isPreview ? previewCanvasRef.current : canvasRef.current;
     if (!canvas) return;
 
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    canvas.width = containerDimensions.width;
-    canvas.height = containerDimensions.height;
+    if (isPreview) {
+      // Preview canvas - with background padding
+      canvas.width = containerDimensions.width;
+      canvas.height = containerDimensions.height;
 
-    // Black background
-    ctx.fillStyle = "black";
-    ctx.fillRect(0, 0, containerDimensions.width, containerDimensions.height);
+      // Background color based on theme
+      ctx.fillStyle = theme === 'dark' ? 'black' : 'white';
+      ctx.fillRect(0, 0, containerDimensions.width, containerDimensions.height);
+    } else {
+      // Export canvas - exact image size, no background
+      canvas.width = width;
+      canvas.height = height;
+    }
 
-    // Apply filter to image ONLY
-    if (filter && filter !== "filter-none") {
+    // Apply filter
+    if (filter && filter !== "none") {
       ctx.filter = getCanvasFilter(filter);
     } else {
       ctx.filter = "none";
     }
 
-    // Draw image with filter
-    ctx.drawImage(img, offsetX, offsetY, renderedWidth, renderedHeight);
-
-    // IMPORTANT: Reset filter before drawing caption
+    ctx.drawImage(img, offsetX, offsetY, width, height);
     ctx.filter = "none";
 
-    // Draw caption (without filter)
     if (caption) {
-      drawCaption(ctx, renderedWidth, renderedHeight, offsetX, offsetY);
+      drawCaption(ctx, width, height, offsetX, offsetY, isPreview);
     }
   };
 
   const getCanvasFilter = (filterClass: string): string => {
     const filterMap: Record<string, string> = {
-      "grayscale": "grayscale(100%)",
-      "sepia": "sepia(100%)",
-      "blur": "blur(4px)",
-      "brightness": "brightness(1.2)",
-      "contrast": "contrast(1.2)",
-      "saturate": "saturate(1.5)",
-      "invert": "invert(100%)",
-      "none": "none",
+      none: "none",
+      grayscale: "grayscale(100%)",
+      sepia: "sepia(100%)",
+      blur: "blur(4px)",
+      brightness: "brightness(1.2)",
+      contrast: "contrast(1.2)",
+      saturate: "saturate(1.5)",
+      invert: "invert(100%)",
     };
     return filterMap[filterClass] || "none";
   };
@@ -152,33 +162,34 @@ export default function ImageCanvas({
     renderedWidth: number,
     renderedHeight: number,
     offsetX: number,
-    offsetY: number
+    offsetY: number,
+    isPreview: boolean
   ) => {
-    const paddingX = 16;
-    const paddingY = 8; // REDUCED vertical padding
-    const borderRadius = 6;
-    const bottomMargin = 10;
+    const scale = isPreview ? 1 : (renderedWidth / containerDimensions.width);
+    const paddingX = 16 * scale;
+    const paddingY = 8 * scale;
+    const borderRadius = 6 * scale;
+    const bottomMargin = 5 * scale;
+    const scaledFontSize = fontSize * scale;
 
-    ctx.font = `${fontSize}px ${font}`;
+    ctx.font = `${scaledFontSize}px ${font}`;
     ctx.textAlign = "center";
-    ctx.textBaseline = "alphabetic"; // Changed from "bottom" for better control
+    ctx.textBaseline = "alphabetic";
 
     const maxWidth = renderedWidth * 0.9;
     const lines = processTextWithLineBreaks(ctx, caption, maxWidth);
-    const lineHeight = fontSize * 1.2; // REDUCED from 1.3 to 1.2
+    const lineHeight = scaledFontSize * 1.2;
     const textHeight = lines.length * lineHeight;
 
-    // Calculate actual text width (not max width)
     const textWidths = lines.map((line) => ctx.measureText(line).width);
     const maxTextWidth = Math.max(...textWidths);
     
-    const bgWidth = maxTextWidth + paddingX * 2; // Fit to actual text width
-    const bgHeight = textHeight + paddingY * 2; // REDUCED padding
+    const bgWidth = maxTextWidth + paddingX * 2;
+    const bgHeight = textHeight + paddingY * 2;
 
     const bgX = offsetX + renderedWidth / 2 - bgWidth / 2;
     const bgY = offsetY + renderedHeight - bottomMargin - bgHeight;
 
-    // Draw background with opacity
     const bgHex = Math.floor((opacity / 100) * 255)
       .toString(16)
       .padStart(2, "0");
@@ -187,21 +198,18 @@ export default function ImageCanvas({
     drawRoundedRect(ctx, bgX, bgY, bgWidth, bgHeight, borderRadius);
     ctx.fill();
 
-    // Draw text with stroke
     lines.forEach((line, i) => {
       const textX = offsetX + renderedWidth / 2;
-      const textY = bgY + paddingY + (i + 0.8) * lineHeight; // Adjusted positioning
+      const textY = bgY + paddingY + (i + 0.8) * lineHeight;
 
-      // Draw stroke if enabled
       if (textStroke > 0) {
         ctx.strokeStyle = textStrokeColor;
-        ctx.lineWidth = textStroke;
+        ctx.lineWidth = textStroke * scale;
         ctx.lineJoin = "round";
         ctx.miterLimit = 2;
         ctx.strokeText(line, textX, textY);
       }
 
-      // Draw fill text
       ctx.fillStyle = textColor;
       ctx.fillText(line, textX, textY);
     });
@@ -280,12 +288,21 @@ export default function ImageCanvas({
     <div
       id="export-container"
       ref={containerRef}
-      className="w-full h-full flex items-center justify-center bg-black"
+      className={`w-full h-full flex items-center justify-center p-6 ${
+        theme === 'dark' ? 'bg-black' : 'bg-white'
+      }`}
     >
+      {/* Preview Canvas - Visible */}
+      <canvas
+        ref={previewCanvasRef}
+        className="max-w-full max-h-full"
+      />
+      
+      {/* Export Canvas - Hidden */}
       <canvas
         ref={canvasRef}
         id="export-canvas"
-        className="max-w-full max-h-full"
+        style={{ display: 'none' }}
       />
     </div>
   );
