@@ -48,6 +48,181 @@ export default function Page() {
     setImage(file)
   }
 
+  const handleExport = async () => {
+    const canvas = document.getElementById("export-canvas") as HTMLCanvasElement
+    if (!canvas || !image) {
+      console.error("Canvas or image not found")
+      return
+    }
+
+    try {
+      const exportScale = 2
+
+      // Calculate image bounds (same logic as ImageCanvas)
+      const containerWidth = canvas.width
+      const containerHeight = canvas.height
+
+      const img = new Image()
+      img.crossOrigin = "anonymous"
+      
+      await new Promise<void>((resolve, reject) => {
+        img.onload = () => resolve()
+        img.onerror = () => reject(new Error("Failed to load image"))
+        img.src = image
+      })
+
+      const aspect = img.naturalWidth / img.naturalHeight
+      const contAspect = containerWidth / containerHeight
+      let w, h
+
+      if (aspect > contAspect) {
+        w = containerWidth
+        h = w / aspect
+      } else {
+        h = containerHeight
+        w = h * aspect
+      }
+
+      const ox = (containerWidth - w) / 2
+      const oy = (containerHeight - h) / 2
+
+      // Create export canvas with only the image size (no black space)
+      const exportCanvas = document.createElement("canvas")
+      exportCanvas.width = w * exportScale
+      exportCanvas.height = h * exportScale
+
+      const ctx = exportCanvas.getContext("2d")
+      if (!ctx) {
+        throw new Error("Failed to get canvas context")
+      }
+
+      ctx.imageSmoothingEnabled = true
+      ctx.imageSmoothingQuality = "high"
+
+      // Draw only the image portion (cropping out black space)
+      ctx.drawImage(
+        canvas,
+        ox, oy, w, h,  // Source: crop from original canvas
+        0, 0, exportCanvas.width, exportCanvas.height // Destination: full export canvas
+      )
+
+      const blob = await new Promise<Blob>((resolve, reject) => {
+        exportCanvas.toBlob(
+          (blob) => {
+            if (!blob) {
+              reject(new Error("Failed to create blob"))
+              return
+            }
+            resolve(blob)
+          },
+          "image/png",
+          1.0,
+        )
+      })
+
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement("a")
+      link.download = `captioned-image-${Date.now()}.png`
+      link.href = url
+
+      document.body.appendChild(link)
+      link.click()
+
+      setTimeout(() => {
+        document.body.removeChild(link)
+        URL.revokeObjectURL(url)
+      }, 100)
+
+      console.log("Export successful!")
+    } catch (error) {
+      console.error("Export failed:", error)
+      alert("Export failed. Please try again.")
+    }
+  }
+
+  const handleCopy = async () => {
+    const canvas = document.getElementById("export-canvas") as HTMLCanvasElement
+    if (!canvas || !image) {
+      console.error("Canvas or image not found")
+      return
+    }
+
+    try {
+      // Calculate image bounds (same logic as ImageCanvas)
+      const containerWidth = canvas.width
+      const containerHeight = canvas.height
+
+      const img = new Image()
+      img.crossOrigin = "anonymous"
+      
+      await new Promise<void>((resolve, reject) => {
+        img.onload = () => resolve()
+        img.onerror = () => reject(new Error("Failed to load image"))
+        img.src = image
+      })
+
+      const aspect = img.naturalWidth / img.naturalHeight
+      const contAspect = containerWidth / containerHeight
+      let w, h
+
+      if (aspect > contAspect) {
+        w = containerWidth
+        h = w / aspect
+      } else {
+        h = containerHeight
+        w = h * aspect
+      }
+
+      const ox = (containerWidth - w) / 2
+      const oy = (containerHeight - h) / 2
+
+      // Create export canvas with only the image size (no black space)
+      const copyCanvas = document.createElement("canvas")
+      copyCanvas.width = w
+      copyCanvas.height = h
+
+      const ctx = copyCanvas.getContext("2d")
+      if (!ctx) {
+        throw new Error("Failed to get canvas context")
+      }
+
+      ctx.imageSmoothingEnabled = true
+      ctx.imageSmoothingQuality = "high"
+
+      // Draw only the image portion (cropping out black space)
+      ctx.drawImage(
+        canvas,
+        ox, oy, w, h,  // Source: crop from original canvas
+        0, 0, copyCanvas.width, copyCanvas.height // Destination: full copy canvas
+      )
+
+      const blob = await new Promise<Blob>((resolve, reject) => {
+        copyCanvas.toBlob(
+          (blob) => {
+            if (!blob) {
+              reject(new Error("Failed to create blob"))
+              return
+            }
+            resolve(blob)
+          },
+          "image/png",
+          1.0,
+        )
+      })
+
+      await navigator.clipboard.write([
+        new ClipboardItem({
+          "image/png": blob,
+        }),
+      ])
+
+      console.log("Copy successful!")
+    } catch (error) {
+      console.error("Copy failed:", error)
+      alert("Copy failed. Please try again.")
+    }
+  }
+
   return (
     <div className="flex flex-col bg-black text-[var(--color-text-primary)] h-screen overflow-hidden">
       <div className="flex gap-6 flex-1 overflow-hidden p-6">
@@ -133,19 +308,15 @@ export default function Page() {
           </div>
 
           <div className="border-t border-[#333333] pt-3 space-y-2 flex gap-2">
-            <button className="flex-1 px-4 py-2 bg-white text-black font-semibold rounded-lg text-sm">
+            <button
+              onClick={handleExport}
+              className="flex-1 px-4 py-2 bg-white text-black font-semibold rounded-lg text-sm hover:shadow-lg hover:shadow-white/20 transition-all cursor-pointer"
+            >
               Download
             </button>
             <button
-              onClick={() => {
-                const canvas = document.getElementById("export-canvas") as HTMLCanvasElement
-                if (canvas) {
-                  canvas.toBlob((blob) => {
-                    if (blob) navigator.clipboard.write([new ClipboardItem({ "image/png": blob })])
-                  })
-                }
-              }}
-              className="px-4 py-2 bg-[#2d2d2d] text-white rounded-lg text-sm"
+              onClick={handleCopy}
+              className="px-4 py-2 bg-[#2d2d2d] text-white rounded-lg text-sm hover:bg-[#3d3d3d] transition-all cursor-pointer"
             >
               Copy
             </button>
