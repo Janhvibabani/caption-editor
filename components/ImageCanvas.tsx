@@ -11,8 +11,11 @@ interface Props {
   filter: string;
   font: string;
   fontSize: number;
-  textStroke: number; // NEW
-  textStrokeColor: string; // NEW
+  textStroke: number;
+  textStrokeColor: string;
+  bold: boolean;
+  italic: boolean;
+  underline: boolean;
 }
 
 interface ImageBounds {
@@ -35,11 +38,14 @@ export default function ImageCanvas({
   fontSize,
   textStroke,
   textStrokeColor,
+  bold,
+  italic,
+  underline,
 }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [imageBounds, setImageBounds] = useState<ImageBounds | null>(null);
-  const [containerDimensions, setContainerDimensions] = useState({ width: 900, height: 600 });
+  const [containerDimensions, setContainerDimensions] = useState({ width: 1200, height: 800 });
 
   useEffect(() => {
     const updateDimensions = () => {
@@ -92,7 +98,7 @@ export default function ImageCanvas({
       drawToCanvas(img, renderedWidth, renderedHeight, offsetX, offsetY);
     };
     img.src = image;
-  }, [image, caption, textColor, bgColor, opacity, filter, font, fontSize, textStroke, textStrokeColor, containerDimensions]);
+  }, [image, caption, textColor, bgColor, opacity, filter, font, fontSize, textStroke, textStrokeColor, bold, italic, underline, containerDimensions]);
 
   const drawToCanvas = (
     img: HTMLImageElement,
@@ -159,7 +165,17 @@ export default function ImageCanvas({
     const borderRadius = 6;
     const bottomMargin = 10;
 
-    ctx.font = `${fontSize}px ${font}`;
+    // Build font string with bold and italic
+    let fontStyle = "";
+    if (bold && italic) {
+      fontStyle = "bold italic";
+    } else if (bold) {
+      fontStyle = "bold";
+    } else if (italic) {
+      fontStyle = "italic";
+    }
+    
+    ctx.font = fontStyle ? `${fontStyle} ${fontSize}px ${font}` : `${fontSize}px ${font}`;
     ctx.textAlign = "center";
     ctx.textBaseline = "alphabetic"; // Changed from "bottom" for better control
 
@@ -204,6 +220,18 @@ export default function ImageCanvas({
       // Draw fill text
       ctx.fillStyle = textColor;
       ctx.fillText(line, textX, textY);
+
+      // Draw underline if enabled
+      if (underline) {
+        const textMetrics = ctx.measureText(line);
+        const underlineY = textY + 2; // Position underline slightly below text baseline
+        ctx.strokeStyle = textColor;
+        ctx.lineWidth = Math.max(1, fontSize / 20); // Scale underline thickness with font size
+        ctx.beginPath();
+        ctx.moveTo(textX - textMetrics.width / 2, underlineY);
+        ctx.lineTo(textX + textMetrics.width / 2, underlineY);
+        ctx.stroke();
+      }
     });
   };
 
