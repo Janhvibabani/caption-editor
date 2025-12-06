@@ -1,30 +1,30 @@
-"use client"
+"use client";
 
-import React, { useRef, useEffect, useState } from "react"
+import React, { useRef, useEffect, useState } from "react";
 
 interface Props {
-  image: string | null
-  caption: string
-  textColor: string
-  bgColor: string
-  opacity: number
-  filter: string
-  font: string
-  fontSize: number
-  textStroke: number
-  textStrokeColor: string
-  bold: boolean
-  italic: boolean
-  underline: boolean
+  image: string | null;
+  caption: string;
+  textColor: string;
+  bgColor: string;
+  opacity: number;
+  filter: string;
+  font: string;
+  fontSize: number;
+  textStroke: number;
+  textStrokeColor: string;
+  bold: boolean;
+  italic: boolean;
+  underline: boolean;
 }
 
 interface ImageBounds {
-  width: number
-  height: number
-  offsetX: number
-  offsetY: number
-  naturalWidth: number
-  naturalHeight: number
+  width: number;
+  height: number;
+  offsetX: number;
+  offsetY: number;
+  naturalWidth: number;
+  naturalHeight: number;
 }
 
 export default function ImageCanvas({
@@ -40,231 +40,281 @@ export default function ImageCanvas({
   textStrokeColor,
   bold,
   italic,
-  underline
+  underline,
 }: Props) {
-  const containerRef = useRef<HTMLDivElement>(null)
-  const canvasRef = useRef<HTMLCanvasElement>(null)
-  const [imageBounds, setImageBounds] = useState<ImageBounds | null>(null)
-  const [containerDimensions, setContainerDimensions] = useState({ width: 1200, height: 800 })
+  const containerRef = useRef<HTMLDivElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [imageBounds, setImageBounds] = useState<ImageBounds | null>(null);
+  const [containerDimensions, setContainerDimensions] = useState({ width: 1200, height: 800 });
 
   useEffect(() => {
-    const update = () => {
+    const updateDimensions = () => {
       if (containerRef.current) {
-        const r = containerRef.current.getBoundingClientRect()
-        setContainerDimensions({ width: r.width, height: r.height })
+        const rect = containerRef.current.getBoundingClientRect();
+        setContainerDimensions({
+          width: rect.width,
+          height: rect.height,
+        });
       }
-    }
-    update()
-    window.addEventListener("resize", update)
-    return () => window.removeEventListener("resize", update)
-  }, [])
+    };
+
+    updateDimensions();
+    window.addEventListener("resize", updateDimensions);
+    return () => window.removeEventListener("resize", updateDimensions);
+  }, []);
 
   useEffect(() => {
-    if (!image) return
-    const img = new Image()
-    img.crossOrigin = "anonymous"
-    img.onload = () => {
-      const aspect = img.naturalWidth / img.naturalHeight
-      const contAspect = containerDimensions.width / containerDimensions.height
-      let w, h
+    if (!image) return;
 
-      if (aspect > contAspect) {
-        w = containerDimensions.width
-        h = w / aspect
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.onload = () => {
+      const imgAspect = img.naturalWidth / img.naturalHeight;
+      const containerAspect = containerDimensions.width / containerDimensions.height;
+
+      let renderedWidth: number;
+      let renderedHeight: number;
+
+      if (imgAspect > containerAspect) {
+        renderedWidth = containerDimensions.width;
+        renderedHeight = containerDimensions.width / imgAspect;
       } else {
-        h = containerDimensions.height
-        w = h * aspect
+        renderedHeight = containerDimensions.height;
+        renderedWidth = containerDimensions.height * imgAspect;
       }
 
-      const ox = (containerDimensions.width - w) / 2
-      const oy = (containerDimensions.height - h) / 2
+      const offsetX = (containerDimensions.width - renderedWidth) / 2;
+      const offsetY = (containerDimensions.height - renderedHeight) / 2;
 
       setImageBounds({
-        width: w,
-        height: h,
-        offsetX: ox,
-        offsetY: oy,
+        width: renderedWidth,
+        height: renderedHeight,
+        offsetX,
+        offsetY,
         naturalWidth: img.naturalWidth,
-        naturalHeight: img.naturalHeight
-      })
+        naturalHeight: img.naturalHeight,
+      });
 
-      draw(img, w, h, ox, oy)
-    }
-    img.src = image
-  }, [
-    image,
-    caption,
-    textColor,
-    bgColor,
-    opacity,
-    filter,
-    font,
-    fontSize,
-    textStroke,
-    textStrokeColor,
-    bold,
-    italic,
-    underline,
-    containerDimensions
-  ])
+      drawToCanvas(img, renderedWidth, renderedHeight, offsetX, offsetY);
+    };
+    img.src = image;
+  }, [image, caption, textColor, bgColor, opacity, filter, font, fontSize, textStroke, textStrokeColor, bold, italic, underline, containerDimensions]);
 
-  const draw = (
+  const drawToCanvas = (
     img: HTMLImageElement,
-    w: number,
-    h: number,
-    ox: number,
-    oy: number
+    renderedWidth: number,
+    renderedHeight: number,
+    offsetX: number,
+    offsetY: number
   ) => {
-    const canvas = canvasRef.current
-    if (!canvas) return
-    const ctx = canvas.getContext("2d")
-    if (!ctx) return
+    const canvas = canvasRef.current;
+    if (!canvas) return;
 
-    canvas.width = containerDimensions.width
-    canvas.height = containerDimensions.height
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
 
-    ctx.fillStyle = "black"
-    ctx.fillRect(0, 0, canvas.width, canvas.height)
+    canvas.width = containerDimensions.width;
+    canvas.height = containerDimensions.height;
 
-    ctx.filter = filter !== "none" ? mapFilter(filter) : "none"
-    ctx.drawImage(img, ox, oy, w, h)
-    ctx.filter = "none"
+    // Black background
+    ctx.fillStyle = "black";
+    ctx.fillRect(0, 0, containerDimensions.width, containerDimensions.height);
 
-    if (caption) paintCaption(ctx, w, h, ox, oy)
-  }
+    // Apply filter to image ONLY
+    if (filter && filter !== "filter-none") {
+      ctx.filter = getCanvasFilter(filter);
+    } else {
+      ctx.filter = "none";
+    }
 
-  const mapFilter = (key: string) =>
-    ({
-      grayscale: "grayscale(100%)",
-      sepia: "sepia(100%)",
-      blur: "blur(4px)",
-      brightness: "brightness(1.2)",
-      contrast: "contrast(1.2)",
-      saturate: "saturate(1.5)",
-      invert: "invert(100%)",
-      none: "none"
-    }[key] || "none")
+    // Draw image with filter
+    ctx.drawImage(img, offsetX, offsetY, renderedWidth, renderedHeight);
 
-  const paintCaption = (
+    // IMPORTANT: Reset filter before drawing caption
+    ctx.filter = "none";
+
+    // Draw caption (without filter)
+    if (caption) {
+      drawCaption(ctx, renderedWidth, renderedHeight, offsetX, offsetY);
+    }
+  };
+
+  const getCanvasFilter = (filterClass: string): string => {
+    const filterMap: Record<string, string> = {
+      "grayscale": "grayscale(100%)",
+      "sepia": "sepia(100%)",
+      "blur": "blur(4px)",
+      "brightness": "brightness(1.2)",
+      "contrast": "contrast(1.2)",
+      "saturate": "saturate(1.5)",
+      "invert": "invert(100%)",
+      "none": "none",
+    };
+    return filterMap[filterClass] || "none";
+  };
+
+  const drawCaption = (
     ctx: CanvasRenderingContext2D,
-    w: number,
-    h: number,
-    ox: number,
-    oy: number
+    renderedWidth: number,
+    renderedHeight: number,
+    offsetX: number,
+    offsetY: number
   ) => {
-    const padX = 16
-    const padY = 8
-    const radius = 6
-    const margin = 10
+    const paddingX = 16;
+    const paddingY = 8; // REDUCED vertical padding
+    const borderRadius = 6;
+    const bottomMargin = 10;
 
-    let style = ""
-    if (italic) style += "italic "
-    if (bold) style += "bold "
-    style += `${fontSize}px ${font}`
+    // Build font string with bold and italic
+    let fontStyle = "";
+    if (bold && italic) {
+      fontStyle = "bold italic";
+    } else if (bold) {
+      fontStyle = "bold";
+    } else if (italic) {
+      fontStyle = "italic";
+    }
+    
+    ctx.font = fontStyle ? `${fontStyle} ${fontSize}px ${font}` : `${fontSize}px ${font}`;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "alphabetic"; // Changed from "bottom" for better control
 
-    ctx.font = style
-    ctx.textAlign = "center"
+    const maxWidth = renderedWidth * 0.9;
+    const lines = processTextWithLineBreaks(ctx, caption, maxWidth);
+    const lineHeight = fontSize * 1.2; // REDUCED from 1.3 to 1.2
+    const textHeight = lines.length * lineHeight;
 
-    const maxW = w * 0.9
-    const lines = breakLines(ctx, caption, maxW)
-    const lineH = fontSize * 1.2
-    const txtH = lines.length * lineH
+    // Calculate actual text width (not max width)
+    const textWidths = lines.map((line) => ctx.measureText(line).width);
+    const maxTextWidth = Math.max(...textWidths);
+    
+    const bgWidth = maxTextWidth + paddingX * 2; // Fit to actual text width
+    const bgHeight = textHeight + paddingY * 2; // REDUCED padding
 
-    const widths = lines.map(l => ctx.measureText(l).width)
-    const maxTextW = Math.max(...widths)
+    const bgX = offsetX + renderedWidth / 2 - bgWidth / 2;
+    const bgY = offsetY + renderedHeight - bottomMargin - bgHeight;
 
-    const bgW = maxTextW + padX * 2
-    const bgH = txtH + padY * 2
-
-    const bx = ox + w / 2 - bgW / 2
-    const by = oy + h - margin - bgH
-
-    const bgAlpha = Math.floor((opacity / 100) * 255)
+    // Draw background with opacity
+    const bgHex = Math.floor((opacity / 100) * 255)
       .toString(16)
-      .padStart(2, "0")
+      .padStart(2, "0");
+    ctx.fillStyle = bgColor + bgHex;
 
-    ctx.fillStyle = bgColor + bgAlpha
-    roundRect(ctx, bx, by, bgW, bgH, radius)
-    ctx.fill()
+    drawRoundedRect(ctx, bgX, bgY, bgWidth, bgHeight, borderRadius);
+    ctx.fill();
 
+    // Draw text with stroke
     lines.forEach((line, i) => {
-      const tx = ox + w / 2
-      const ty = by + padY + (i + 0.8) * lineH
+      const textX = offsetX + renderedWidth / 2;
+      const textY = bgY + paddingY + (i + 0.8) * lineHeight; // Adjusted positioning
 
+      // Draw stroke if enabled
       if (textStroke > 0) {
-        ctx.strokeStyle = textStrokeColor
-        ctx.lineWidth = textStroke
-        ctx.lineJoin = "round"
-        ctx.strokeText(line, tx, ty)
+        ctx.strokeStyle = textStrokeColor;
+        ctx.lineWidth = textStroke;
+        ctx.lineJoin = "round";
+        ctx.miterLimit = 2;
+        ctx.strokeText(line, textX, textY);
       }
 
-      ctx.fillStyle = textColor
-      ctx.fillText(line, tx, ty)
+      // Draw fill text
+      ctx.fillStyle = textColor;
+      ctx.fillText(line, textX, textY);
 
+      // Draw underline if enabled
       if (underline) {
-        const m = ctx.measureText(line)
-        const uy = ty + 2
-        ctx.strokeStyle = textColor
-        ctx.lineWidth = Math.max(1, fontSize / 20)
-        ctx.beginPath()
-        ctx.moveTo(tx - m.width / 2, uy)
-        ctx.lineTo(tx + m.width / 2, uy)
-        ctx.stroke()
+        const textMetrics = ctx.measureText(line);
+        const underlineY = textY + 2; // Position underline slightly below text baseline
+        ctx.strokeStyle = textColor;
+        ctx.lineWidth = Math.max(1, fontSize / 20); // Scale underline thickness with font size
+        ctx.beginPath();
+        ctx.moveTo(textX - textMetrics.width / 2, underlineY);
+        ctx.lineTo(textX + textMetrics.width / 2, underlineY);
+        ctx.stroke();
       }
-    })
-  }
+    });
+  };
 
-  const breakLines = (ctx: CanvasRenderingContext2D, text: string, max: number) => {
-    const out: string[] = []
-    const parts = text.split("\n")
-    parts.forEach(p => {
-      if (!p.trim()) out.push("")
-      else out.push(...wrap(ctx, p, max))
-    })
-    return out
-  }
+  const processTextWithLineBreaks = (
+    ctx: CanvasRenderingContext2D,
+    text: string,
+    maxWidth: number
+  ): string[] => {
+    const allLines: string[] = [];
+    const paragraphs = text.split("\n");
 
-  const wrap = (ctx: CanvasRenderingContext2D, txt: string, max: number) => {
-    const words = txt.split(" ")
-    const lines: string[] = []
-    let cur = ""
+    paragraphs.forEach((paragraph) => {
+      if (paragraph.trim() === "") {
+        allLines.push("");
+      } else {
+        const wrappedLines = wrapText(ctx, paragraph, maxWidth);
+        allLines.push(...wrappedLines);
+      }
+    });
 
-    words.forEach(w => {
-      const t = cur ? cur + " " + w : w
-      if (ctx.measureText(t).width > max && cur) {
-        lines.push(cur)
-        cur = w
-      } else cur = t
-    })
+    return allLines;
+  };
 
-    if (cur) lines.push(cur)
-    return lines
-  }
+  const wrapText = (
+    ctx: CanvasRenderingContext2D,
+    text: string,
+    maxWidth: number
+  ): string[] => {
+    const words = text.split(" ");
+    const lines: string[] = [];
+    let currentLine = "";
 
-  const roundRect = (
+    words.forEach((word) => {
+      const testLine = currentLine ? `${currentLine} ${word}` : word;
+      const metrics = ctx.measureText(testLine);
+
+      if (metrics.width > maxWidth && currentLine) {
+        lines.push(currentLine);
+        currentLine = word;
+      } else {
+        currentLine = testLine;
+      }
+    });
+
+    if (currentLine) {
+      lines.push(currentLine);
+    }
+
+    return lines;
+  };
+
+  const drawRoundedRect = (
     ctx: CanvasRenderingContext2D,
     x: number,
     y: number,
-    w: number,
-    h: number,
-    r: number
+    width: number,
+    height: number,
+    radius: number
   ) => {
-    ctx.beginPath()
-    ctx.moveTo(x + r, y)
-    ctx.lineTo(x + w - r, y)
-    ctx.quadraticCurveTo(x + w, y, x + w, y + r)
-    ctx.lineTo(x + w, y + h - r)
-    ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h)
-    ctx.lineTo(x + r, y + h)
-    ctx.quadraticCurveTo(x, y + h, x, y + h - r)
-    ctx.lineTo(x, y + r)
-    ctx.quadraticCurveTo(x, y, x + r, y)
-    ctx.closePath()
-  }
+    ctx.beginPath();
+    ctx.moveTo(x + radius, y);
+    ctx.lineTo(x + width - radius, y);
+    ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+    ctx.lineTo(x + width, y + height - radius);
+    ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+    ctx.lineTo(x + radius, y + height);
+    ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+    ctx.lineTo(x, y + radius);
+    ctx.quadraticCurveTo(x, y, x + radius, y);
+    ctx.closePath();
+  };
 
   return (
-    <div ref={containerRef} className="w-full h-full flex items-center justify-center bg-black">
-      <canvas ref={canvasRef} id="export-canvas" className="max-w-full max-h-full" />
+    <div
+      id="export-container"
+      ref={containerRef}
+      className="w-full h-full flex items-center justify-center bg-black"
+    >
+      <canvas
+        ref={canvasRef}
+        id="export-canvas"
+        className="max-w-full max-h-full"
+      />
     </div>
-  )
+  );
 }
