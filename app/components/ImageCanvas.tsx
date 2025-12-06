@@ -13,6 +13,9 @@ interface Props {
   fontSize: number;
   textStroke: number; // NEW
   textStrokeColor: string; // NEW
+  isBold?: boolean;
+  isItalic?: boolean;
+  isUnderline?: boolean;
 }
 
 interface ImageBounds {
@@ -35,6 +38,9 @@ export default function ImageCanvas({
   fontSize,
   textStroke,
   textStrokeColor,
+  isBold = false,
+  isItalic = false,
+  isUnderline = false,
 }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -92,7 +98,7 @@ export default function ImageCanvas({
       drawToCanvas(img, renderedWidth, renderedHeight, offsetX, offsetY);
     };
     img.src = image;
-  }, [image, caption, textColor, bgColor, opacity, filter, font, fontSize, textStroke, textStrokeColor, containerDimensions]);
+  }, [image, caption, textColor, bgColor, opacity, filter, font, fontSize, textStroke, textStrokeColor, isBold, isItalic, isUnderline, containerDimensions]);
 
   const drawToCanvas = (
     img: HTMLImageElement,
@@ -155,25 +161,29 @@ export default function ImageCanvas({
     offsetY: number
   ) => {
     const paddingX = 16;
-    const paddingY = 8; // REDUCED vertical padding
+    const paddingY = 8;
     const borderRadius = 6;
     const bottomMargin = 10;
 
-    ctx.font = `${fontSize}px ${font}`;
+    // Compose font style
+    let fontStyle = "";
+    if (isItalic) fontStyle += "italic ";
+    if (isBold) fontStyle += "bold ";
+    fontStyle += `${fontSize}px ${font}`;
+    ctx.font = fontStyle;
     ctx.textAlign = "center";
-    ctx.textBaseline = "alphabetic"; // Changed from "bottom" for better control
+    ctx.textBaseline = "alphabetic";
 
     const maxWidth = renderedWidth * 0.9;
     const lines = processTextWithLineBreaks(ctx, caption, maxWidth);
-    const lineHeight = fontSize * 1.2; // REDUCED from 1.3 to 1.2
+    const lineHeight = fontSize * 1.2;
     const textHeight = lines.length * lineHeight;
 
     // Calculate actual text width (not max width)
     const textWidths = lines.map((line) => ctx.measureText(line).width);
     const maxTextWidth = Math.max(...textWidths);
-    
-    const bgWidth = maxTextWidth + paddingX * 2; // Fit to actual text width
-    const bgHeight = textHeight + paddingY * 2; // REDUCED padding
+    const bgWidth = maxTextWidth + paddingX * 2;
+    const bgHeight = textHeight + paddingY * 2;
 
     const bgX = offsetX + renderedWidth / 2 - bgWidth / 2;
     const bgY = offsetY + renderedHeight - bottomMargin - bgHeight;
@@ -190,7 +200,7 @@ export default function ImageCanvas({
     // Draw text with stroke
     lines.forEach((line, i) => {
       const textX = offsetX + renderedWidth / 2;
-      const textY = bgY + paddingY + (i + 0.8) * lineHeight; // Adjusted positioning
+      const textY = bgY + paddingY + (i + 0.8) * lineHeight;
 
       // Draw stroke if enabled
       if (textStroke > 0) {
@@ -204,6 +214,21 @@ export default function ImageCanvas({
       // Draw fill text
       ctx.fillStyle = textColor;
       ctx.fillText(line, textX, textY);
+
+      // Draw underline if enabled
+      if (isUnderline) {
+        const metrics = ctx.measureText(line);
+        const underlineY = textY + 2;
+        const underlineWidth = metrics.width;
+        ctx.save();
+        ctx.strokeStyle = textColor;
+        ctx.lineWidth = Math.max(2, fontSize * 0.08);
+        ctx.beginPath();
+        ctx.moveTo(textX - underlineWidth / 2, underlineY);
+        ctx.lineTo(textX + underlineWidth / 2, underlineY);
+        ctx.stroke();
+        ctx.restore();
+      }
     });
   };
 
@@ -288,5 +313,5 @@ export default function ImageCanvas({
         className="max-w-full max-h-full"
       />
     </div>
-  );
+  );  
 }
