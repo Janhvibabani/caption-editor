@@ -13,7 +13,6 @@ import FontSizeSlider from "./components/FontSizeSlider";
 import ResetButton from "./components/ResetButton";
 import TextStrokeControls from "./components/TextStroke";
 import ThemeToggle from "./components/ThemeToggle";
-import MobileControls from "./components/MobileControls";
 import { useTheme } from "./hooks/useTheme";
 import { useMediaQuery } from "./hooks/useMediaQuery";
 
@@ -63,7 +62,10 @@ export default function Page() {
             ? 'border-neutral-800 bg-[#0d0d0d]'
             : 'border-neutral-200 bg-neutral-50'
         }`}>
-          <ThemeToggle theme={theme} toggleTheme={toggleTheme} />
+          {/* Header with Title */}
+          <div className="pb-4">
+            <h1 className="text-xl font-bold">Caption Editor</h1>
+          </div>
 
           <CaptionInput caption={caption} setCaption={setCaption} theme={theme} />
 
@@ -94,14 +96,21 @@ export default function Page() {
           <FontSizeSlider fontSize={fontSize} setFontSize={setFontSize} theme={theme} />
           
           <FontPicker font={font} setFont={setFont} theme={theme} />
-
-          {image && <ResetButton onReset={handleReset} theme={theme} />}
         </div>
 
         {/* RIGHT PANEL */}
         <div className="flex-1 flex flex-col">
-          {/* CANVAS AREA with Export Button */}
-          <div className="flex-1 overflow-hidden relative" style={{ maxHeight: 'calc(100vh - 180px)' }}>
+          {/* TOP BAR - Theme Toggle */}
+          <div className={`flex items-center justify-end p-4 border-b ${
+            theme === 'dark'
+              ? 'border-neutral-800 bg-[#0d0d0d]'
+              : 'border-neutral-200 bg-neutral-50'
+          }`}>
+            <ThemeToggle theme={theme} toggleTheme={toggleTheme} />
+          </div>
+
+          {/* CANVAS AREA with Action Buttons */}
+          <div className="flex-1 overflow-hidden relative" style={{ maxHeight: 'calc(100vh - 240px)' }}>
             {!image ? (
               <ImageUploader setImage={handleSetImage} theme={theme} />
             ) : (
@@ -119,8 +128,9 @@ export default function Page() {
                   textStrokeColor={textStrokeColor}
                   theme={theme}
                 />
-                {/* Export Button - Floating on Canvas */}
-                <div className="absolute top-4 right-4 z-10">
+                {/* Action Buttons - Floating on Canvas */}
+                <div className="absolute top-4 right-4 z-10 flex gap-3">
+                  <ResetButton onReset={handleReset} theme={theme} compact />
                   <ExportButton theme={theme} />
                 </div>
               </>
@@ -141,25 +151,25 @@ export default function Page() {
     );
   }
 
-  // Mobile Layout
+  // Mobile Layout - Fixed Canvas + Scrollable Controls
   return (
     <div className={`flex flex-col h-screen overflow-hidden ${
       theme === 'dark' 
         ? 'bg-black text-white' 
         : 'bg-white text-black'
     }`}>
-      {/* MOBILE HEADER */}
-      <div className={`flex items-center justify-between p-4 border-b ${
+      {/* MOBILE HEADER - Fixed */}
+      <div className={`flex items-center justify-between p-4 ${
         theme === 'dark'
-          ? 'border-neutral-800 bg-[#0d0d0d]'
-          : 'border-neutral-200 bg-neutral-50'
+          ? 'bg-[#0d0d0d]'
+          : 'bg-neutral-50'
       }`}>
         <h1 className="text-lg font-bold">Caption Editor</h1>
         <ThemeToggle theme={theme} toggleTheme={toggleTheme} />
       </div>
 
-      {/* CANVAS AREA with Export Button */}
-      <div className="flex-1 overflow-hidden relative">
+      {/* CANVAS AREA - Fixed, not scrollable */}
+      <div className="flex-shrink-0 relative" style={{ height: '40vh' }}>
         {!image ? (
           <ImageUploader setImage={handleSetImage} theme={theme} />
         ) : (
@@ -177,46 +187,63 @@ export default function Page() {
               textStrokeColor={textStrokeColor}
               theme={theme}
             />
-            {/* Export Button - Floating on Canvas */}
-            <div className="absolute top-4 right-4 z-10">
+            {/* Action Buttons - Floating on Canvas */}
+            <div className="absolute top-3 right-3 z-10 flex gap-2">
+              <ResetButton onReset={handleReset} theme={theme} compact />
               <ExportButton theme={theme} />
             </div>
           </>
         )}
       </div>
 
-      {/* FILTER PREVIEWS */}
+      {/* SCROLLABLE CONTENT AREA */}
       {image && (
-        <FilterPreviews
-          image={image}
-          currentFilter={filter}
-          onFilterSelect={setFilter}
-          theme={theme}
-        />
-      )}
+        <div className="flex-1 overflow-y-auto">
+          {/* FILTER PREVIEWS */}
+          <FilterPreviews
+            image={image}
+            currentFilter={filter}
+            onFilterSelect={setFilter}
+            theme={theme}
+          />
 
-      {/* MOBILE BOTTOM CONTROLS */}
-      {image && (
-        <MobileControls
-          caption={caption}
-          setCaption={setCaption}
-          textColor={textColor}
-          setTextColor={setTextColor}
-          bgColor={bgColor}
-          setBgColor={setBgColor}
-          opacity={opacity}
-          setOpacity={setOpacity}
-          font={font}
-          setFont={setFont}
-          fontSize={fontSize}
-          setFontSize={setFontSize}
-          textStroke={textStroke}
-          setTextStroke={setTextStroke}
-          textStrokeColor={textStrokeColor}
-          setTextStrokeColor={setTextStrokeColor}
-          onReset={handleReset}
-          theme={theme}
-        />
+          {/* CONTROLS SECTION */}
+          <div className={`p-4 space-y-6 ${
+            theme === 'dark'
+              ? 'bg-[#0d0d0d]'
+              : 'bg-neutral-50'
+          }`}>
+            <CaptionInput caption={caption} setCaption={setCaption} theme={theme} />
+
+            <ColorPicker 
+              title="TEXT COLOR" 
+              value={textColor} 
+              onChange={setTextColor}
+              theme={theme}
+            />
+            
+            <TextStrokeControls
+              textStroke={textStroke}
+              setTextStroke={setTextStroke}
+              textStrokeColor={textStrokeColor}
+              setTextStrokeColor={setTextStrokeColor}
+              theme={theme}
+            />
+
+            <ColorPicker 
+              title="BACKGROUND COLOR" 
+              value={bgColor} 
+              onChange={setBgColor}
+              theme={theme}
+            />
+
+            <OpacitySlider opacity={opacity} setOpacity={setOpacity} theme={theme} />
+            
+            <FontSizeSlider fontSize={fontSize} setFontSize={setFontSize} theme={theme} />
+            
+            <FontPicker font={font} setFont={setFont} theme={theme} />
+          </div>
+        </div>
       )}
     </div>
   );
