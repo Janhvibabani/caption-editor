@@ -41,7 +41,7 @@ export default function ImageCanvas({
 }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const previewCanvasRef = useRef<HTMLCanvasElement>(null); // NEW: Separate preview canvas
+  const previewCanvasRef = useRef<HTMLCanvasElement>(null);
   const [imageBounds, setImageBounds] = useState<ImageBounds | null>(null);
   const [containerDimensions, setContainerDimensions] = useState({ width: 900, height: 600 });
 
@@ -93,9 +93,8 @@ export default function ImageCanvas({
         naturalHeight: img.naturalHeight,
       });
 
-      // Draw both canvases
-      drawToCanvas(img, renderedWidth, renderedHeight, offsetX, offsetY, true); // Preview with bg
-      drawToCanvas(img, img.naturalWidth, img.naturalHeight, 0, 0, false); // Export without bg
+      drawToCanvas(img, renderedWidth, renderedHeight, offsetX, offsetY, true);
+      drawToCanvas(img, img.naturalWidth, img.naturalHeight, 0, 0, false);
     };
     img.src = image;
   }, [image, caption, textColor, bgColor, opacity, filter, font, fontSize, textStroke, textStrokeColor, containerDimensions, theme]);
@@ -115,20 +114,15 @@ export default function ImageCanvas({
     if (!ctx) return;
 
     if (isPreview) {
-      // Preview canvas - with background padding
       canvas.width = containerDimensions.width;
       canvas.height = containerDimensions.height;
-
-      // Background color based on theme
       ctx.fillStyle = theme === 'dark' ? 'black' : 'white';
       ctx.fillRect(0, 0, containerDimensions.width, containerDimensions.height);
     } else {
-      // Export canvas - exact image size, no background
       canvas.width = width;
       canvas.height = height;
     }
 
-    // Apply filter
     if (filter && filter !== "none") {
       ctx.filter = getCanvasFilter(filter);
     } else {
@@ -168,8 +162,7 @@ export default function ImageCanvas({
     const scale = isPreview ? 1 : (renderedWidth / containerDimensions.width);
     const paddingX = 16 * scale;
     const paddingY = 8 * scale;
-    const borderRadius = 6 * scale;
-    const bottomMargin = 5 * scale;
+    const bottomMargin = 24 * scale;
     const scaledFontSize = fontSize * scale;
 
     ctx.font = `${scaledFontSize}px ${font}`;
@@ -190,14 +183,16 @@ export default function ImageCanvas({
     const bgX = offsetX + renderedWidth / 2 - bgWidth / 2;
     const bgY = offsetY + renderedHeight - bottomMargin - bgHeight;
 
-    const bgHex = Math.floor((opacity / 100) * 255)
-      .toString(16)
-      .padStart(2, "0");
-    ctx.fillStyle = bgColor + bgHex;
+    // Draw background with sharp corners (no rounded rect)
+    if (opacity > 0) {
+      const bgHex = Math.floor((opacity / 100) * 255)
+        .toString(16)
+        .padStart(2, "0");
+      ctx.fillStyle = bgColor + bgHex;
+      ctx.fillRect(bgX, bgY, bgWidth, bgHeight); // Sharp rectangle
+    }
 
-    drawRoundedRect(ctx, bgX, bgY, bgWidth, bgHeight, borderRadius);
-    ctx.fill();
-
+    // Draw text
     lines.forEach((line, i) => {
       const textX = offsetX + renderedWidth / 2;
       const textY = bgY + paddingY + (i + 0.8) * lineHeight;
@@ -263,27 +258,6 @@ export default function ImageCanvas({
     return lines;
   };
 
-  const drawRoundedRect = (
-    ctx: CanvasRenderingContext2D,
-    x: number,
-    y: number,
-    width: number,
-    height: number,
-    radius: number
-  ) => {
-    ctx.beginPath();
-    ctx.moveTo(x + radius, y);
-    ctx.lineTo(x + width - radius, y);
-    ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
-    ctx.lineTo(x + width, y + height - radius);
-    ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
-    ctx.lineTo(x + radius, y + height);
-    ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
-    ctx.lineTo(x, y + radius);
-    ctx.quadraticCurveTo(x, y, x + radius, y);
-    ctx.closePath();
-  };
-
   return (
     <div
       id="export-container"
@@ -292,13 +266,11 @@ export default function ImageCanvas({
         theme === 'dark' ? 'bg-black' : 'bg-white'
       }`}
     >
-      {/* Preview Canvas - Visible */}
       <canvas
         ref={previewCanvasRef}
         className="max-w-full max-h-full"
       />
       
-      {/* Export Canvas - Hidden */}
       <canvas
         ref={canvasRef}
         id="export-canvas"

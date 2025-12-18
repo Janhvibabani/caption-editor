@@ -13,6 +13,7 @@ import FontSizeSlider from "./components/FontSizeSlider";
 import ResetButton from "./components/ResetButton";
 import TextStrokeControls from "./components/TextStroke";
 import ThemeToggle from "./components/ThemeToggle";
+import Presets from "./components/Presets"; // NEW
 import { useTheme } from "./hooks/useTheme";
 import { useMediaQuery } from "./hooks/useMediaQuery";
 
@@ -48,6 +49,21 @@ export default function Page() {
     setImage(file);
   };
 
+  // NEW: Handle preset selection
+  const handlePresetSelect = (settings: {
+    textColor: string;
+    bgColor: string;
+    opacity: number;
+    textStroke: number;
+    textStrokeColor: string;
+  }) => {
+    setTextColor(settings.textColor);
+    setBgColor(settings.bgColor);
+    setOpacity(settings.opacity);
+    setTextStroke(settings.textStroke);
+    setTextStrokeColor(settings.textStrokeColor);
+  };
+
   // Desktop Layout
   if (!isMobile) {
     return (
@@ -62,10 +78,12 @@ export default function Page() {
             ? 'border-neutral-800 bg-[#0d0d0d]'
             : 'border-neutral-200 bg-neutral-50'
         }`}>
-          {/* Header with Title */}
           <div className="pb-4">
             <h1 className="text-xl font-bold">Caption Editor</h1>
           </div>
+
+          {/* NEW: Presets */}
+          <Presets onPresetSelect={handlePresetSelect} theme={theme} />
 
           <CaptionInput caption={caption} setCaption={setCaption} theme={theme} />
 
@@ -100,7 +118,6 @@ export default function Page() {
 
         {/* RIGHT PANEL */}
         <div className="flex-1 flex flex-col">
-          {/* TOP BAR - Theme Toggle */}
           <div className={`flex items-center justify-end p-4 border-b ${
             theme === 'dark'
               ? 'border-neutral-800 bg-[#0d0d0d]'
@@ -109,7 +126,6 @@ export default function Page() {
             <ThemeToggle theme={theme} toggleTheme={toggleTheme} />
           </div>
 
-          {/* CANVAS AREA with Action Buttons */}
           <div className="flex-1 overflow-hidden relative" style={{ maxHeight: 'calc(100vh - 240px)' }}>
             {!image ? (
               <ImageUploader setImage={handleSetImage} theme={theme} />
@@ -128,7 +144,6 @@ export default function Page() {
                   textStrokeColor={textStrokeColor}
                   theme={theme}
                 />
-                {/* Action Buttons - Floating on Canvas */}
                 <div className="absolute top-4 right-4 z-10 flex gap-3">
                   <ResetButton onReset={handleReset} theme={theme} compact />
                   <ExportButton theme={theme} />
@@ -137,7 +152,6 @@ export default function Page() {
             )}
           </div>
 
-          {/* FILTER PREVIEWS BAR */}
           {image && (
             <FilterPreviews
               image={image}
@@ -151,14 +165,13 @@ export default function Page() {
     );
   }
 
-  // Mobile Layout - Fixed Canvas + Scrollable Controls
+  // Mobile Layout
   return (
     <div className={`flex flex-col h-screen overflow-hidden ${
       theme === 'dark' 
         ? 'bg-black text-white' 
         : 'bg-white text-black'
     }`}>
-      {/* MOBILE HEADER - Fixed */}
       <div className={`flex items-center justify-between p-4 ${
         theme === 'dark'
           ? 'bg-[#0d0d0d]'
@@ -168,7 +181,6 @@ export default function Page() {
         <ThemeToggle theme={theme} toggleTheme={toggleTheme} />
       </div>
 
-      {/* CANVAS AREA - Fixed, not scrollable */}
       <div className="flex-shrink-0 relative" style={{ height: '40vh' }}>
         {!image ? (
           <ImageUploader setImage={handleSetImage} theme={theme} />
@@ -187,7 +199,6 @@ export default function Page() {
               textStrokeColor={textStrokeColor}
               theme={theme}
             />
-            {/* Action Buttons - Floating on Canvas */}
             <div className="absolute top-3 right-3 z-10 flex gap-2">
               <ResetButton onReset={handleReset} theme={theme} compact />
               <ExportButton theme={theme} />
@@ -196,10 +207,8 @@ export default function Page() {
         )}
       </div>
 
-      {/* SCROLLABLE CONTENT AREA */}
       {image && (
         <div className="flex-1 overflow-y-auto">
-          {/* FILTER PREVIEWS */}
           <FilterPreviews
             image={image}
             currentFilter={filter}
@@ -207,12 +216,14 @@ export default function Page() {
             theme={theme}
           />
 
-          {/* CONTROLS SECTION */}
           <div className={`p-4 space-y-6 ${
             theme === 'dark'
               ? 'bg-[#0d0d0d]'
               : 'bg-neutral-50'
           }`}>
+            {/* NEW: Presets on Mobile */}
+            <Presets onPresetSelect={handlePresetSelect} theme={theme} />
+
             <CaptionInput caption={caption} setCaption={setCaption} theme={theme} />
 
             <ColorPicker 
