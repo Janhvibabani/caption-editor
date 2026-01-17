@@ -1,5 +1,6 @@
 "use client";
 
+import { track } from '@vercel/analytics';
 import { Theme } from "../hooks/useTheme";
 
 interface Props {
@@ -61,6 +62,11 @@ export default function ExportButton({ theme }: Props) {
         document.body.removeChild(link);
         URL.revokeObjectURL(url);
       }, 100);
+
+      // Track export event
+      track('export_image', {
+        timestamp: new Date().toISOString(),
+      });
 
       console.log("Export successful!");
     } catch (error) {
