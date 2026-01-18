@@ -1,7 +1,7 @@
 "use client";
 
 import { Theme } from "../hooks/useTheme";
-import MinimalColorPicker from "./MinimalColorPicker";
+import MinimalColorPicker from "./mobile/MinimalColorPicker";
 import CompactSlider from "./CompactSlider";
 import TextStyles from "./TextStyles";
 import { cn } from "@/lib/utils";
