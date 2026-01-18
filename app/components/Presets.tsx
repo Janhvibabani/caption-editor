@@ -1,6 +1,7 @@
 "use client";
 
 import { Theme } from "../hooks/useTheme";
+import { cn } from "@/lib/utils";
 
 interface PresetConfig {
   name: string;
@@ -203,24 +204,30 @@ export default function Presets({ onPresetSelect, theme, isMobile }: Props) {
         Caption Presets
       </label>
       
-      <div className="w-full max-w-full overflow-x-auto overflow-y-hidden pb-2 scrollbar-thin">
+      <div className={cn(
+        "w-full max-w-full overflow-x-auto overflow-y-hidden pb-2",
+        "[&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
+      )} style={{ WebkitOverflowScrolling: "touch" }}>
         <div className="flex gap-3 w-max">
           {PRESETS.map((preset) => (
             <button
               key={preset.name}
               onClick={() => onPresetSelect(preset.settings)}
-              className={`flex-shrink-0 flex flex-col items-center gap-2 p-3 rounded-lg transition-all w-20 ${
+              className={cn(
+                "flex-shrink-0 flex flex-col items-center gap-2 p-3 rounded-lg transition-all touch-manipulation active:scale-95",
+                isMobile ? "w-20" : "w-20",
                 theme === 'dark'
                   ? 'bg-neutral-800 hover:bg-neutral-700 border border-neutral-700 hover:border-neutral-600'
                   : 'bg-neutral-100 hover:bg-neutral-200 border border-neutral-300 hover:border-neutral-400'
-              }`}
+              )}
               title={preset.name}
             >
               {/* Preview Box with actual caption style */}
               <div 
-                className={`w-14 h-10 rounded flex items-center justify-center ${
+                className={cn(
+                  "w-14 h-10 rounded flex items-center justify-center",
                   theme === 'dark' ? 'bg-neutral-900' : 'bg-neutral-50'
-                }`}
+                )}
                 style={getBackgroundStyle(preset)}
               >
                 <span style={getPreviewStyle(preset)}>
@@ -228,9 +235,10 @@ export default function Presets({ onPresetSelect, theme, isMobile }: Props) {
                 </span>
               </div>
               
-              <span className={`text-[9px] font-medium text-center leading-tight ${
+              <span className={cn(
+                "text-[9px] font-medium text-center leading-tight",
                 theme === 'dark' ? 'text-neutral-300' : 'text-neutral-700'
-              }`}>
+              )}>
                 {preset.name}
               </span>
             </button>

@@ -95,11 +95,19 @@ export default function CompactSlider({
             type="button"
             variant="outline"
             size="icon"
-            className="h-7 w-7"
+            className={cn(
+              "h-7 w-7",
+              theme === 'dark'
+                ? "!bg-neutral-900 !border-neutral-700 hover:!bg-neutral-800 !text-white"
+                : "!bg-white !border-neutral-300 hover:!bg-neutral-100 !text-black"
+            )}
             onClick={() => handleStep("down")}
             disabled={value <= min}
           >
-            <ChevronDown className={cn("h-3 w-3", theme === 'dark' ? 'text-white' : 'text-slate-900')} />
+            <ChevronDown className={cn(
+              "h-3 w-3",
+              theme === 'dark' ? "text-white" : "text-black"
+            )} />
           </Button>
           <div className="flex items-center gap-1">
             <Input
@@ -127,11 +135,19 @@ export default function CompactSlider({
             type="button"
             variant="outline"
             size="icon"
-            className="h-7 w-7"
+            className={cn(
+              "h-7 w-7",
+              theme === 'dark'
+                ? "!bg-neutral-900 !border-neutral-700 hover:!bg-neutral-800 !text-white"
+                : "!bg-white !border-neutral-300 hover:!bg-neutral-100 !text-black"
+            )}
             onClick={() => handleStep("up")}
             disabled={value >= max}
           >
-            <ChevronUp className={cn("h-3 w-3", theme === 'dark' ? 'text-white' : 'text-slate-900')} />
+            <ChevronUp className={cn(
+              "h-3 w-3",
+              theme === 'dark' ? "text-white" : "text-black"
+            )} />
           </Button>
         </div>
       </div>

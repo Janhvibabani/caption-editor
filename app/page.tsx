@@ -16,13 +16,15 @@ import FilterPreviews from "./components/FilterPreviews";
 import DummyFilterPreviews from "./components/DummyFilterPreviews";
 import TextStyles from "./components/TextStyles";
 import PresetChips from "./components/PresetChips";
+import Presets from "./components/Presets";
 import BottomNavigation from "./components/mobile/BottomNavigation";
 import BottomSheet from "./components/mobile/BottomSheet";
 import FilterCarousel from "./components/mobile/FilterCarousel";
 import StyleCarousel from "./components/mobile/StyleCarousel";
+import EditMenu from "./components/mobile/EditMenu";
 import { useTheme } from "./hooks/useTheme";
 import { useMediaQuery } from "./hooks/useMediaQuery";
-import { Download, Upload } from "lucide-react";
+import { Download, Upload, Settings2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export default function Page() {
@@ -43,6 +45,7 @@ export default function Page() {
   const [activeTab, setActiveTab] = useState("caption");
   const [activeMobileTab, setActiveMobileTab] = useState<"caption" | "filters" | "style">("caption");
   const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const [isEditMenuOpen, setIsEditMenuOpen] = useState(false);
 
   const { theme, toggleTheme } = useTheme();
   const isMobile = useMediaQuery("(max-width: 768px)");
@@ -155,36 +158,39 @@ export default function Page() {
               : "border-neutral-200 bg-neutral-50"
           )}
         >
-          <h1 className="text-lg font-bold tracking-tight">Caption Editor</h1>
-          <div className="flex items-center gap-2">
+          <h1 className={cn(
+            "text-lg font-bold tracking-tight flex-1 min-w-0 truncate pr-2",
+            theme === "dark" ? "text-white" : "text-black"
+          )}>
+            The Subtitles
+          </h1>
+          <div className="flex items-center gap-2 flex-shrink-0">
             {image && (
-              <>
-                <CropRotateControls
-                  onRotate={handleRotate}
-                  onCrop={() => setShowCropModal(true)}
-                  theme={theme}
-                />
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={handleReset}
-                  className={cn(
-                    "h-9 w-9",
-                    theme === "dark"
-                      ? "bg-neutral-900 border-neutral-800 hover:bg-neutral-800"
-                      : "bg-white border-neutral-300 hover:bg-neutral-100"
-                  )}
-                >
-                  <Upload className="h-4 w-4" />
-                </Button>
-              </>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => setIsEditMenuOpen(true)}
+                className={cn(
+                  "h-9 w-9",
+                  theme === "dark"
+                    ? "bg-neutral-900 border-neutral-800 hover:bg-neutral-800 text-white"
+                    : "bg-white border-neutral-300 hover:bg-neutral-100 text-black"
+                )}
+              >
+                <Settings2 className="h-4 w-4" />
+              </Button>
             )}
             <Button
               onClick={handleExport}
               disabled={!image}
               variant="default"
               size="sm"
-              className="gap-2 h-9"
+              className={cn(
+                "gap-2 h-9",
+                theme === "dark"
+                  ? "bg-white text-black hover:bg-neutral-200"
+                  : "bg-black text-white hover:bg-neutral-900"
+              )}
             >
               <Download className="h-4 w-4" />
               Export
@@ -239,6 +245,12 @@ export default function Page() {
         >
           {activeMobileTab === "caption" && (
             <div className="space-y-4">
+              <Presets
+                onPresetSelect={handlePresetSelect}
+                theme={theme}
+                isMobile={true}
+              />
+              
               <div>
                 <label
                   className={cn(
@@ -310,6 +322,16 @@ export default function Page() {
           )}
         </BottomSheet>
 
+        {/* Edit Menu */}
+        <EditMenu
+          isOpen={isEditMenuOpen}
+          onClose={() => setIsEditMenuOpen(false)}
+          onReplaceImage={handleReset}
+          onRotate={handleRotate}
+          onCrop={() => setShowCropModal(true)}
+          theme={theme}
+        />
+
         {/* Crop Modal */}
         {showCropModal && image && (
           <CropModal
@@ -344,7 +366,7 @@ export default function Page() {
         )}
       >
         <div className="flex items-center gap-4">
-          <h1 className="text-lg font-bold tracking-tight">Caption Editor</h1>
+          <h1 className="text-lg font-bold tracking-tight">The Subtitles</h1>
         </div>
         <div className="flex items-center gap-2">
           {image && (
@@ -360,8 +382,8 @@ export default function Page() {
                 onClick={handleReset}
                 className={cn(
                   theme === "dark"
-                    ? "bg-neutral-900 border-neutral-800 hover:bg-neutral-800"
-                    : "bg-white border-neutral-300 hover:bg-neutral-100"
+                    ? "bg-neutral-900 border-neutral-800 hover:bg-neutral-800 text-white"
+                    : "bg-black border-black hover:bg-neutral-900 text-white"
                 )}
               >
                 <Upload className="h-4 w-4" />
@@ -373,7 +395,12 @@ export default function Page() {
             disabled={!image}
             variant="default"
             size="sm"
-            className="gap-2"
+            className={cn(
+              "gap-2",
+              theme === "dark"
+                ? "bg-white text-black hover:bg-neutral-200"
+                : "bg-black text-white hover:bg-neutral-900"
+            )}
           >
             <Download className="h-4 w-4" />
             Export
@@ -404,7 +431,7 @@ export default function Page() {
             >
               <TabsList
                 className={cn(
-                  "grid w-full grid-cols-3",
+                  "grid w-full grid-cols-2",
                   theme === "dark" ? "bg-neutral-900" : "bg-neutral-100"
                 )}
               >
@@ -413,9 +440,6 @@ export default function Page() {
                 </TabsTrigger>
                 <TabsTrigger value="filters" className="text-xs">
                   Filters
-                </TabsTrigger>
-                <TabsTrigger value="export" className="text-xs">
-                  Export
                 </TabsTrigger>
               </TabsList>
             </div>
@@ -455,17 +479,7 @@ export default function Page() {
                   </p>
                 </div>
 
-                <div>
-                  <label
-                    className={cn(
-                      "block text-xs font-semibold mb-2 uppercase tracking-wider",
-                      theme === "dark" ? "text-neutral-400" : "text-neutral-600"
-                    )}
-                  >
-                    Font Family
-                  </label>
-                  <FontPicker font={font} setFont={setFont} theme={theme} />
-                </div>
+                <FontPicker font={font} setFont={setFont} theme={theme} />
 
                 <CompactSlider
                   label="Font Size"
@@ -489,47 +503,6 @@ export default function Page() {
                     theme={theme}
                   />
                 )}
-              </TabsContent>
-
-              <TabsContent value="export" className="space-y-4 mt-0">
-                <Card
-                  className={cn(
-                    theme === "dark"
-                      ? "bg-neutral-900 border-neutral-800"
-                      : "bg-white border-neutral-200"
-                  )}
-                >
-                  <CardContent className="p-4 space-y-4">
-                    <div>
-                      <h3
-                        className={cn(
-                          "text-sm font-semibold mb-2",
-                          theme === "dark" ? "text-white" : "text-slate-900"
-                        )}
-                      >
-                        Export Options
-                      </h3>
-                      <p
-                        className={cn(
-                          "text-xs",
-                          theme === "dark" ? "text-white" : "text-slate-900"
-                        )}
-                      >
-                        Export your image as PNG with high quality. The exported
-                        image will include all applied styles and filters.
-                      </p>
-                    </div>
-                    <Button
-                      onClick={handleExport}
-                      disabled={!image}
-                      className="w-full"
-                      variant="default"
-                    >
-                      <Download className="h-4 w-4 mr-2" />
-                      Export Image
-                    </Button>
-                  </CardContent>
-                </Card>
               </TabsContent>
             </div>
           </Tabs>
