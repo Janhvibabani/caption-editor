@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useState } from "react";
 import { Theme } from "../../hooks/useTheme";
 import { cn } from "@/lib/utils";
 import MinimalColorPicker from "./MinimalColorPicker";
@@ -56,9 +56,55 @@ export default function StyleCarousel({
   theme,
 }: Props) {
   const scrollRef = useRef<HTMLDivElement>(null);
+  const [activeIndex, setActiveIndex] = useState(0);
+
+  // Update active index based on scroll position
+  useEffect(() => {
+    const container = scrollRef.current;
+    if (!container) return;
+
+    const handleScroll = () => {
+      const scrollLeft = container.scrollLeft;
+      const cardWidth = container.clientWidth;
+      const newIndex = Math.round(scrollLeft / cardWidth);
+      setActiveIndex(newIndex);
+    };
+
+    container.addEventListener("scroll", handleScroll);
+    return () => container.removeEventListener("scroll", handleScroll);
+  }, []);
 
   return (
     <div className="space-y-4">
+      {/* Indicators */}
+      <div className="flex items-center justify-center gap-2">
+        {STYLE_SECTIONS.map((_, index) => (
+          <button
+            key={index}
+            onClick={() => {
+              if (scrollRef.current) {
+                const cardWidth = scrollRef.current.clientWidth;
+                scrollRef.current.scrollTo({
+                  left: index * cardWidth,
+                  behavior: "smooth",
+                });
+              }
+            }}
+            className={cn(
+              "transition-all rounded-full",
+              activeIndex === index
+                ? theme === "dark"
+                  ? "bg-white w-2 h-2"
+                  : "bg-black w-2 h-2"
+                : theme === "dark"
+                ? "bg-neutral-700 w-1.5 h-1.5"
+                : "bg-neutral-400 w-1.5 h-1.5"
+            )}
+            aria-label={`Go to ${STYLE_SECTIONS[index].title}`}
+          />
+        ))}
+      </div>
+
       <div
         ref={scrollRef}
         className="flex gap-4 overflow-x-auto pb-2 overscroll-contain snap-x snap-mandatory [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
@@ -67,7 +113,7 @@ export default function StyleCarousel({
         }}
       >
         {/* Text Color Card */}
-        <div className="flex-shrink-0 snap-center w-full min-w-full">
+        <div className="flex-shrink-0 snap-center w-full min-w-full px-1">
           <div
             className={cn(
               "rounded-xl p-4 min-h-[200px]",
@@ -84,7 +130,7 @@ export default function StyleCarousel({
         </div>
 
         {/* Stroke Color Card */}
-        <div className="flex-shrink-0 snap-center w-full min-w-full">
+        <div className="flex-shrink-0 snap-center w-full min-w-full px-1">
           <div
             className={cn(
               "rounded-xl p-4 min-h-[200px]",
@@ -101,7 +147,7 @@ export default function StyleCarousel({
         </div>
 
         {/* Stroke Width Card */}
-        <div className="flex-shrink-0 snap-center w-full min-w-full">
+        <div className="flex-shrink-0 snap-center w-full min-w-full px-1">
           <div
             className={cn(
               "rounded-xl p-4 min-h-[200px]",
@@ -121,7 +167,7 @@ export default function StyleCarousel({
         </div>
 
         {/* Text Styles Card */}
-        <div className="flex-shrink-0 snap-center w-full min-w-full">
+        <div className="flex-shrink-0 snap-center w-full min-w-full px-1">
           <div
             className={cn(
               "rounded-xl p-4 min-h-[200px]",
@@ -141,7 +187,7 @@ export default function StyleCarousel({
         </div>
 
         {/* Background Color Card */}
-        <div className="flex-shrink-0 snap-center w-full min-w-full">
+        <div className="flex-shrink-0 snap-center w-full min-w-full px-1">
           <div
             className={cn(
               "rounded-xl p-4 min-h-[200px]",
@@ -158,7 +204,7 @@ export default function StyleCarousel({
         </div>
 
         {/* Background Opacity Card */}
-        <div className="flex-shrink-0 snap-center w-full min-w-full">
+        <div className="flex-shrink-0 snap-center w-full min-w-full px-1">
           <div
             className={cn(
               "rounded-xl p-4 min-h-[200px]",

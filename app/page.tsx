@@ -16,13 +16,15 @@ import FilterPreviews from "./components/FilterPreviews";
 import DummyFilterPreviews from "./components/DummyFilterPreviews";
 import TextStyles from "./components/TextStyles";
 import PresetChips from "./components/PresetChips";
+import Presets from "./components/Presets";
 import BottomNavigation from "./components/mobile/BottomNavigation";
 import BottomSheet from "./components/mobile/BottomSheet";
 import FilterCarousel from "./components/mobile/FilterCarousel";
 import StyleCarousel from "./components/mobile/StyleCarousel";
+import EditMenu from "./components/mobile/EditMenu";
 import { useTheme } from "./hooks/useTheme";
 import { useMediaQuery } from "./hooks/useMediaQuery";
-import { Download, Upload } from "lucide-react";
+import { Download, Upload, Settings2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export default function Page() {
@@ -43,6 +45,7 @@ export default function Page() {
   const [activeTab, setActiveTab] = useState("caption");
   const [activeMobileTab, setActiveMobileTab] = useState<"caption" | "filters" | "style">("caption");
   const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const [isEditMenuOpen, setIsEditMenuOpen] = useState(false);
 
   const { theme, toggleTheme } = useTheme();
   const isMobile = useMediaQuery("(max-width: 768px)");
@@ -155,29 +158,27 @@ export default function Page() {
               : "border-neutral-200 bg-neutral-50"
           )}
         >
-          <h1 className="text-lg font-bold tracking-tight">The Subtitles</h1>
-          <div className="flex items-center gap-2">
+          <h1 className={cn(
+            "text-lg font-bold tracking-tight flex-1 min-w-0 truncate pr-2",
+            theme === "dark" ? "text-white" : "text-black"
+          )}>
+            The Subtitles
+          </h1>
+          <div className="flex items-center gap-2 flex-shrink-0">
             {image && (
-              <>
-                <CropRotateControls
-                  onRotate={handleRotate}
-                  onCrop={() => setShowCropModal(true)}
-                  theme={theme}
-                />
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={handleReset}
-                  className={cn(
-                    "h-9 w-9",
-                    theme === "dark"
-                      ? "bg-neutral-900 border-neutral-800 hover:bg-neutral-800 text-white"
-                      : "bg-black border-black hover:bg-neutral-900 text-white"
-                  )}
-                >
-                  <Upload className="h-4 w-4" />
-                </Button>
-              </>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => setIsEditMenuOpen(true)}
+                className={cn(
+                  "h-9 w-9",
+                  theme === "dark"
+                    ? "bg-neutral-900 border-neutral-800 hover:bg-neutral-800 text-white"
+                    : "bg-white border-neutral-300 hover:bg-neutral-100 text-black"
+                )}
+              >
+                <Settings2 className="h-4 w-4" />
+              </Button>
             )}
             <Button
               onClick={handleExport}
@@ -244,6 +245,12 @@ export default function Page() {
         >
           {activeMobileTab === "caption" && (
             <div className="space-y-4">
+              <Presets
+                onPresetSelect={handlePresetSelect}
+                theme={theme}
+                isMobile={true}
+              />
+              
               <div>
                 <label
                   className={cn(
@@ -314,6 +321,16 @@ export default function Page() {
             />
           )}
         </BottomSheet>
+
+        {/* Edit Menu */}
+        <EditMenu
+          isOpen={isEditMenuOpen}
+          onClose={() => setIsEditMenuOpen(false)}
+          onReplaceImage={handleReset}
+          onRotate={handleRotate}
+          onCrop={() => setShowCropModal(true)}
+          theme={theme}
+        />
 
         {/* Crop Modal */}
         {showCropModal && image && (
