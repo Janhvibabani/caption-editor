@@ -27,13 +27,43 @@ const hexToRgb = (hex: string): { r: number; g: number; b: number } => {
     : { r: 0, g: 0, b: 0 };
 };
 
+// Convert RGB to HSV
+const rgbToHsv = (rgb: { r: number; g: number; b: number }): { h: number; s: number; v: number } => {
+  const r = rgb.r / 255;
+  const g = rgb.g / 255;
+  const b = rgb.b / 255;
+
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  const delta = max - min;
+
+  let h = 0;
+  if (delta !== 0) {
+    if (max === r) {
+      h = ((g - b) / delta) % 6;
+    } else if (max === g) {
+      h = (b - r) / delta + 2;
+    } else {
+      h = (r - g) / delta + 4;
+    }
+  }
+  h = Math.round(h * 60);
+  if (h < 0) h += 360;
+
+  const s = max === 0 ? 0 : Math.round((delta / max) * 100);
+  const v = Math.round(max * 100);
+
+  return { h, s, v };
+};
+
 // Convert hex to IColor format
 const hexToIColor = (hex: string): IColor => {
   const rgb = hexToRgb(hex);
+  const hsv = rgbToHsv(rgb);
   return {
     hex: hex.startsWith("#") ? hex : `#${hex}`,
     rgb: { r: rgb.r, g: rgb.g, b: rgb.b, a: 1 },
-    hsv: { h: 0, s: 0, v: 0, a: 1 },
+    hsv: { h: hsv.h, s: hsv.s, v: hsv.v, a: 1 },
   };
 };
 

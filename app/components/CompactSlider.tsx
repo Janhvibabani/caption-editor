@@ -99,7 +99,7 @@ export default function CompactSlider({
             onClick={() => handleStep("down")}
             disabled={value <= min}
           >
-            <ChevronDown className="h-3 w-3 text-white" />
+            <ChevronDown className={cn("h-3 w-3", theme === 'dark' ? 'text-white' : 'text-slate-900')} />
           </Button>
           <div className="flex items-center gap-1">
             <Input
@@ -131,7 +131,7 @@ export default function CompactSlider({
             onClick={() => handleStep("up")}
             disabled={value >= max}
           >
-            <ChevronUp className="h-3 w-3 text-white" />
+            <ChevronUp className={cn("h-3 w-3", theme === 'dark' ? 'text-white' : 'text-slate-900')} />
           </Button>
         </div>
       </div>
