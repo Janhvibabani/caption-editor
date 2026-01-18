@@ -28,6 +28,22 @@ interface Props {
 
 const PRESETS_DESKTOP: PresetConfig[] = [
   {
+    name: "Helvetica Clean",
+    preview: "Aa",
+    settings: {
+      textColor: "#FFFFFF",
+      bgColor: "#000000",
+      opacity: 0,
+      textStroke: 2,
+      textStrokeColor: "#000000",
+      font: "Helvetica, Arial, sans-serif",
+      fontSize: 28,
+      isBold: false,
+      isItalic: false,
+      isUnderline: false,
+    },
+  },
+  {
     name: "No Background",
     preview: "Aa",
     settings: {
@@ -92,6 +108,22 @@ const PRESETS_DESKTOP: PresetConfig[] = [
 ];
 
 const PRESETS_MOBILE: PresetConfig[] = [
+  {
+    name: "Helvetica Clean",
+    preview: "Aa",
+    settings: {
+      textColor: "#FFFFFF",
+      bgColor: "#000000",
+      opacity: 0,
+      textStroke: 1,
+      textStrokeColor: "#000000",
+      font: "Helvetica, Arial, sans-serif",
+      fontSize: 16,
+      isBold: false,
+      isItalic: false,
+      isUnderline: false,
+    },
+  },
   {
     name: "No Background",
     preview: "Aa",
@@ -161,7 +193,7 @@ export default function Presets({ onPresetSelect, theme, isMobile }: Props) {
   const getPreviewStyle = (preset: PresetConfig) => {
     const baseStyle: React.CSSProperties = {
       color: preset.settings.textColor,
-      fontFamily: preset.settings.font || 'Arial, sans-serif',
+      fontFamily: preset.settings.font || 'Helvetica, Arial, sans-serif',
       fontSize: '24px',
       fontWeight: preset.settings.isBold ? 'bold' : 'normal',
       fontStyle: preset.settings.isItalic ? 'italic' : 'normal',

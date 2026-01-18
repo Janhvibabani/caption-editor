@@ -27,6 +27,19 @@ interface Props {
 
 const PRESETS: PresetConfig[] = [
   {
+    name: "Helvetica Clean",
+    preview: "Aa",
+    settings: {
+      textColor: "#FFFFFF",
+      bgColor: "#000000",
+      opacity: 0,
+      textStroke: 2,
+      textStrokeColor: "#000000",
+      font: "Helvetica, Arial, sans-serif",
+      fontSize: 28,
+    },
+  },
+  {
     name: "No Background",
     preview: "Aa",
     settings: {
@@ -83,7 +96,7 @@ export default function PresetChips({ onPresetSelect, theme }: Props) {
   const getPreviewStyle = (preset: PresetConfig) => {
     const baseStyle: React.CSSProperties = {
       color: preset.settings.textColor,
-      fontFamily: preset.settings.font || 'Arial, sans-serif',
+      fontFamily: preset.settings.font || 'Helvetica',
       fontSize: '14px',
       fontWeight: preset.settings.isBold ? 'bold' : 'normal',
       fontStyle: preset.settings.isItalic ? 'italic' : 'normal',

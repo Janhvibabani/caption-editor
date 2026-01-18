@@ -17,9 +17,9 @@ export default function BottomSheet({ isOpen, onClose, children, theme, title }:
 
   return (
     <>
-      {/* Backdrop */}
+      {/* Backdrop - transparent to keep preview visible */}
       <div
-        className="fixed inset-0 bg-black/50 z-40"
+        className="fixed inset-0 z-40"
         onClick={onClose}
       />
       

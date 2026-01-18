@@ -9,6 +9,7 @@ interface Props {
 }
 
 const FONTS = [
+  { value: "Helvetica", label: "Helvetica" },
   { value: "Arial, sans-serif", label: "Arial" },
   { value: "Georgia, serif", label: "Georgia" },
   { value: "'Courier New', monospace", label: "Courier New" },

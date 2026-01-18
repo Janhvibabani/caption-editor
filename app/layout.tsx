@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "The Subtitles",
+  title: "thesubtitles",
   description: "A simple caption editor for photos.",
   icons: "/icon.svg",
   openGraph: {

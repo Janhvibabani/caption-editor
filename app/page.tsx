@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "./components/ui/tabs";
 import { Button } from "./components/ui/button";
 import { Card, CardContent } from "./components/ui/card";
@@ -34,7 +34,7 @@ export default function Page() {
   const [bgColor, setBgColor] = useState("#000000");
   const [opacity, setOpacity] = useState(0);
   const [filter, setFilter] = useState("none");
-  const [font, setFont] = useState("Arial, sans-serif");
+  const [font, setFont] = useState("Helvetica, Arial, sans-serif");
   const [fontSize, setFontSize] = useState(28);
   const [textStroke, setTextStroke] = useState(3);
   const [textStrokeColor, setTextStrokeColor] = useState("#000000");
@@ -50,6 +50,13 @@ export default function Page() {
   const { theme, toggleTheme } = useTheme();
   const isMobile = useMediaQuery("(max-width: 768px)");
 
+  // Set initial font size based on device
+  useEffect(() => {
+    if (isMobile) {
+      setFontSize(16);
+    }
+  }, []);
+
   const handleReset = () => {
     setImage(null);
     setSubtitle("");
@@ -57,8 +64,8 @@ export default function Page() {
     setBgColor("#000000");
     setOpacity(0);
     setFilter("none");
-    setFont("Arial, sans-serif");
-    setFontSize(28);
+    setFont("Helvetica");
+    setFontSize(isMobile ? 16 : 28);
     setTextStroke(3);
     setTextStrokeColor("#000000");
     setIsBold(false);
@@ -162,7 +169,7 @@ export default function Page() {
             "text-lg font-bold tracking-tight flex-1 min-w-0 truncate pr-2",
             theme === "dark" ? "text-white" : "text-black"
           )}>
-            The Subtitles
+            thesubtitles
           </h1>
           <div className="flex items-center gap-2 flex-shrink-0">
             {image && (
@@ -383,7 +390,7 @@ export default function Page() {
                 className={cn(
                   theme === "dark"
                     ? "bg-neutral-900 border-neutral-800 hover:bg-neutral-800 text-white"
-                    : "bg-black border-black hover:bg-neutral-900 text-white"
+                    : "bg-white border-neutral-300 hover:bg-neutral-100 text-black"
                 )}
               >
                 <Upload className="h-4 w-4" />
