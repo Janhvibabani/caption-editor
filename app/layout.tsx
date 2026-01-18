@@ -14,27 +14,27 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "caption editor",
+  title: "The Subtitles",
   description: "A simple caption editor for photos.",
   icons: "/icon.svg",
   openGraph: {
-    title: "Caption Editor",
+    title: "The Subtitles",
     description: "A simple caption editor for photos.",
     url: "https://caption-editor-theta.vercel.app/",
-    siteName: "Caption Editor",
+    siteName: "The Subtitles",
     images: [
       {
         url: "https://www.thesubtitles.xyz/og.png",
         width: 1200,
         height: 630,
-        alt: "Caption Editor – Add captions to photos",
+        alt: "The Subtitles – Add captions to photos",
       },
     ],
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Caption Editor",
+    title: "The Subtitles",
     description: "A simple caption editor for photos.",
     images: ["https://caption-editor-theta.vercel.app/og.png"],
   },

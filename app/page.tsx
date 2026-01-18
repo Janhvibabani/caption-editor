@@ -155,7 +155,7 @@ export default function Page() {
               : "border-neutral-200 bg-neutral-50"
           )}
         >
-          <h1 className="text-lg font-bold tracking-tight">Caption Editor</h1>
+          <h1 className="text-lg font-bold tracking-tight">The Subtitles</h1>
           <div className="flex items-center gap-2">
             {image && (
               <>
@@ -171,8 +171,8 @@ export default function Page() {
                   className={cn(
                     "h-9 w-9",
                     theme === "dark"
-                      ? "bg-neutral-900 border-neutral-800 hover:bg-neutral-800"
-                      : "bg-white border-neutral-300 hover:bg-neutral-100"
+                      ? "bg-neutral-900 border-neutral-800 hover:bg-neutral-800 text-white"
+                      : "bg-black border-black hover:bg-neutral-900 text-white"
                   )}
                 >
                   <Upload className="h-4 w-4" />
@@ -184,7 +184,12 @@ export default function Page() {
               disabled={!image}
               variant="default"
               size="sm"
-              className="gap-2 h-9"
+              className={cn(
+                "gap-2 h-9",
+                theme === "dark"
+                  ? "bg-white text-black hover:bg-neutral-200"
+                  : "bg-black text-white hover:bg-neutral-900"
+              )}
             >
               <Download className="h-4 w-4" />
               Export
@@ -344,7 +349,7 @@ export default function Page() {
         )}
       >
         <div className="flex items-center gap-4">
-          <h1 className="text-lg font-bold tracking-tight">Caption Editor</h1>
+          <h1 className="text-lg font-bold tracking-tight">The Subtitles</h1>
         </div>
         <div className="flex items-center gap-2">
           {image && (
@@ -360,8 +365,8 @@ export default function Page() {
                 onClick={handleReset}
                 className={cn(
                   theme === "dark"
-                    ? "bg-neutral-900 border-neutral-800 hover:bg-neutral-800"
-                    : "bg-white border-neutral-300 hover:bg-neutral-100"
+                    ? "bg-neutral-900 border-neutral-800 hover:bg-neutral-800 text-white"
+                    : "bg-black border-black hover:bg-neutral-900 text-white"
                 )}
               >
                 <Upload className="h-4 w-4" />
@@ -373,7 +378,12 @@ export default function Page() {
             disabled={!image}
             variant="default"
             size="sm"
-            className="gap-2"
+            className={cn(
+              "gap-2",
+              theme === "dark"
+                ? "bg-white text-black hover:bg-neutral-200"
+                : "bg-black text-white hover:bg-neutral-900"
+            )}
           >
             <Download className="h-4 w-4" />
             Export
@@ -404,7 +414,7 @@ export default function Page() {
             >
               <TabsList
                 className={cn(
-                  "grid w-full grid-cols-3",
+                  "grid w-full grid-cols-2",
                   theme === "dark" ? "bg-neutral-900" : "bg-neutral-100"
                 )}
               >
@@ -413,9 +423,6 @@ export default function Page() {
                 </TabsTrigger>
                 <TabsTrigger value="filters" className="text-xs">
                   Filters
-                </TabsTrigger>
-                <TabsTrigger value="export" className="text-xs">
-                  Export
                 </TabsTrigger>
               </TabsList>
             </div>
@@ -455,17 +462,7 @@ export default function Page() {
                   </p>
                 </div>
 
-                <div>
-                  <label
-                    className={cn(
-                      "block text-xs font-semibold mb-2 uppercase tracking-wider",
-                      theme === "dark" ? "text-neutral-400" : "text-neutral-600"
-                    )}
-                  >
-                    Font Family
-                  </label>
-                  <FontPicker font={font} setFont={setFont} theme={theme} />
-                </div>
+                <FontPicker font={font} setFont={setFont} theme={theme} />
 
                 <CompactSlider
                   label="Font Size"
@@ -489,47 +486,6 @@ export default function Page() {
                     theme={theme}
                   />
                 )}
-              </TabsContent>
-
-              <TabsContent value="export" className="space-y-4 mt-0">
-                <Card
-                  className={cn(
-                    theme === "dark"
-                      ? "bg-neutral-900 border-neutral-800"
-                      : "bg-white border-neutral-200"
-                  )}
-                >
-                  <CardContent className="p-4 space-y-4">
-                    <div>
-                      <h3
-                        className={cn(
-                          "text-sm font-semibold mb-2",
-                          theme === "dark" ? "text-white" : "text-slate-900"
-                        )}
-                      >
-                        Export Options
-                      </h3>
-                      <p
-                        className={cn(
-                          "text-xs",
-                          theme === "dark" ? "text-white" : "text-slate-900"
-                        )}
-                      >
-                        Export your image as PNG with high quality. The exported
-                        image will include all applied styles and filters.
-                      </p>
-                    </div>
-                    <Button
-                      onClick={handleExport}
-                      disabled={!image}
-                      className="w-full"
-                      variant="default"
-                    >
-                      <Download className="h-4 w-4 mr-2" />
-                      Export Image
-                    </Button>
-                  </CardContent>
-                </Card>
               </TabsContent>
             </div>
           </Tabs>
